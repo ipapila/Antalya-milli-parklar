@@ -492,16 +492,26 @@ const JSONBIN_URL = JSONBIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_ID}` : '
 /* ─── DATA ─── */
 async function load(){
   if(JSONBIN_KEY && JSONBIN_ID){
-    ntf('Veriler yükleniyor…','ok');
     try{
       const res = await fetch(JSONBIN_URL+'/latest',{
         headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
       });
       if(!res.ok) throw new Error('JSONBin fetch hatası');
       const remote = await res.json();
-      data = Array.isArray(remote) ? remote : JSON.parse(JSON.stringify(DD));
+      const valid = Array.isArray(remote) && remote.length > 0 && !remote[0].init;
+      if(valid){
+        data = remote;
+      } else {
+        // İlk açılış: varsayılan veriyi JSONBin'e yaz
+        data = JSON.parse(JSON.stringify(DD));
+        await fetch(JSONBIN_URL,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+          body: JSON.stringify(data)
+        });
+        ntf('Varsayılan veriler yüklendi ve kaydedildi ✓','ok');
+      }
       localStorage.setItem(SK, JSON.stringify(data));
-      ntf(`${data.length} kayıt yüklendi ✓`,'ok');
     } catch(e){
       console.warn('JSONBin yüklenemedi, localStorage kullanılıyor:', e);
       const s=localStorage.getItem(SK);
