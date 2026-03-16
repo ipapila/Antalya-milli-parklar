@@ -198,6 +198,7 @@ body.pkmode #map { cursor:crosshair !important; }
   <div class="hsp"></div>
   <div class="pill">Toplam: <b id="stot">0</b></div>
   <div class="pill">Gösterilen: <b id="svis">0</b></div>
+  <button class="hbtn" id="adminbtn" title="Admin girişi">🔒 Admin</button>
   <button class="hbtn" id="thbtn">🌙</button>
 </div>
 <div id="overlay-bg"></div>
@@ -229,11 +230,11 @@ body.pkmode #map { cursor:crosshair !important; }
       <div class="sec">Katmanlar</div>
       <div id="lgrid"></div>
 
-      <div class="sec">Yeni Kayıt</div>
-      <button class="addbtn" id="addbtn">➕ Yeni Alan Ekle</button>
+      <div class="sec admin-only" style="display:none">Yeni Kayıt</div>
+      <button class="addbtn admin-only" id="addbtn" style="display:none">➕ Yeni Alan Ekle</button>
 
-      <div class="sec">Veri Yönetimi</div>
-      <div class="dtb">
+      <div class="sec admin-only" style="display:none">Veri Yönetimi</div>
+      <div class="dtb admin-only" style="display:none">
         <button class="hbtn" id="expbtn">📥 İndir</button>
         <button class="hbtn" id="impbtn">📤 Yükle</button>
         <button class="hbtn" id="rstbtn">🔄 Sıfırla</button>
@@ -258,6 +259,32 @@ body.pkmode #map { cursor:crosshair !important; }
   </div>
 
 </div>
+</div>
+
+<!-- ADMİN GİRİŞ MODALI -->
+<div id="adminov" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);z-index:4000;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--borderh);border-radius:14px;width:340px;max-width:92vw;padding:28px;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);">Admin Girişi</h2>
+      <p style="font-size:.78rem;color:var(--muted);margin-top:4px;">Bu işlem için admin şifresi gerekiyor.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <input type="password" id="adminpass" placeholder="Şifre..." 
+        style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;width:100%;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor=''"
+        onkeydown="if(event.key==='Enter')checkAdmin()"/>
+      <div id="adminErr" style="color:var(--danger);font-size:.75rem;display:none;">❌ Yanlış şifre!</div>
+      <button onclick="checkAdmin()" 
+        style="background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:8px;padding:10px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;">
+        Giriş Yap
+      </button>
+      <button onclick="closeAdminMod()" 
+        style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px;color:var(--dim);font-size:.82rem;cursor:pointer;">
+        İptal
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -385,6 +412,59 @@ const DD=[
 
 let data=[],mkrs={},lgs={},vis={},editId=null,pkMode=false,pkCb=null,confCb=null;
 let fTxt='',fIlce='',fDrm='';
+let isAdmin=false;
+let pendingAdminAction=null;
+
+/* ── ADMİN SİSTEMİ ── */
+function requireAdmin(action){
+  if(isAdmin){ action(); return; }
+  pendingAdminAction=action;
+  document.getElementById('adminpass').value='';
+  document.getElementById('adminErr').style.display='none';
+  document.getElementById('adminov').style.display='flex';
+  setTimeout(()=>document.getElementById('adminpass').focus(),100);
+}
+function checkAdmin(){
+  const val=document.getElementById('adminpass').value;
+  if(val===ADMIN_PASS){
+    isAdmin=true;
+    document.getElementById('adminov').style.display='none';
+    updateAdminUI();
+    if(pendingAdminAction){ pendingAdminAction(); pendingAdminAction=null; }
+  } else {
+    document.getElementById('adminErr').style.display='block';
+    document.getElementById('adminpass').value='';
+    document.getElementById('adminpass').focus();
+  }
+}
+function closeAdminMod(){
+  document.getElementById('adminov').style.display='none';
+  pendingAdminAction=null;
+}
+function adminLogout(){
+  isAdmin=false;
+  updateAdminUI();
+  ntf('Çıkış yapıldı.','ok');
+}
+function updateAdminUI(){
+  // Admin butonunu güncelle
+  const btn=document.getElementById('adminbtn');
+  if(isAdmin){
+    btn.textContent='🔓 Çıkış';
+    btn.title='Admin çıkışı';
+    btn.style.borderColor='var(--success)';
+    btn.style.color='var(--success)';
+  } else {
+    btn.textContent='🔒 Admin';
+    btn.title='Admin girişi';
+    btn.style.borderColor='';
+    btn.style.color='';
+  }
+  // Ekle, düzenle, sil butonlarını gizle/göster
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=isAdmin?'':'none';
+  });
+}
 
 /* ─── MAP ─── */
 const map=L.map('map',{center:[36.9,30.7],zoom:9});
@@ -460,8 +540,8 @@ function popHtml(r){
     ${r.kaynak?`<div class="pr"><strong>Kaynak:</strong>${r.kaynak}</div>`:''}
     ${r.aciklama?`<div class="pr" style="margin-top:5px;border-top:1px solid #e5e7eb;padding-top:5px">${r.aciklama}</div>`:''}
     <div class="pa">
-      <button class="pb pbe" onclick="doEdit('${r.id}')">✏️ Düzenle</button>
-      <button class="pb pbd" onclick="doDel('${r.id}')">🗑️ Sil</button>
+      <button class="pb pbe" onclick="requireAdmin(()=>doEdit('${r.id}'))">✏️ Düzenle</button>
+      <button class="pb pbd" onclick="requireAdmin(()=>doDel('${r.id}'))">🗑️ Sil</button>
     </div>
   </div>`;
 }
@@ -488,6 +568,9 @@ function remMkr(id){
 const JSONBIN_KEY = '$2a$10$hwg38fvL8C7mgZ30yJUq0.SDH8nmVb6YDldr.6Bf6ie1AuKAap/iO';   // X-Master-Key değeriniz
 const JSONBIN_ID  = '69b78ea1c3097a1dd52bb989';   // Bin ID değeriniz
 const JSONBIN_URL = JSONBIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_ID}` : '';
+
+/* ── ADMİN ŞİFRESİ ── */
+const ADMIN_PASS = 'Smtppl5862'; // ← buraya kendi şifrenizi yazın
 
 /* ─── DATA ─── */
 async function load(){
@@ -671,7 +754,11 @@ function ntf(msg,type='ok'){const el=document.createElement('div');el.className=
 /* ─── EVENTS ─── */
 let dark=true;
 document.getElementById('thbtn').addEventListener('click',()=>{dark=!dark;document.body.setAttribute('data-theme',dark?'dark':'light');document.getElementById('thbtn').textContent=dark?'🌙':'☀️';});
-document.getElementById('addbtn').addEventListener('click',openAdd);
+document.getElementById('addbtn').addEventListener('click',()=>requireAdmin(openAdd));
+document.getElementById('adminbtn').addEventListener('click',()=>{
+  if(isAdmin) adminLogout();
+  else requireAdmin(()=>ntf('Admin girişi yapıldı ✓','ok'));
+});
 document.getElementById('mcls').addEventListener('click',closeMod);
 document.getElementById('mcan').addEventListener('click',closeMod);
 document.getElementById('msav').addEventListener('click',savRec);
@@ -698,8 +785,10 @@ document.getElementById('paneltog').addEventListener('click',()=>{
 document.getElementById('overlay-bg').addEventListener('click', closePanel);
 
 window.doEdit=doEdit;window.doDel=doDel;window.focR=focR;
+window.checkAdmin=checkAdmin;window.closeAdminMod=closeAdminMod;
 
 load();
+updateAdminUI();
 </script>
 </body>
 </html>
