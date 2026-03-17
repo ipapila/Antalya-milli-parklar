@@ -303,7 +303,8 @@ body.pkmode #map { cursor:crosshair !important; }
             <option>Milli Park</option><option>Tabiatı Koruma Alanı</option>
             <option>Kıyı Koruma Alanı</option><option>Maden Ocağı</option>
             <option>Mermer Ocağı</option><option>Taş Ocağı</option>
-            <option>HES</option><option>GES</option><option>Orman Alanı</option>
+            <option>HES</option><option>GES</option><option>RES</option>
+            <option>Jeotermal</option><option>Orman Alanı</option>
             <option>Özel Çevre Koruma Alanı</option><option>Sulak Alan</option>
           </select>
         </div>
@@ -363,6 +364,8 @@ const TYPES=[
   {key:'Taş Ocağı',color:'#78909c',icon:'🏔️'},
   {key:'HES',color:'#4fc3f7',icon:'💧'},
   {key:'GES',color:'#ffa726',icon:'☀️'},
+  {key:'RES',color:'#81d4fa',icon:'💨'},
+  {key:'Jeotermal',color:'#ef5350',icon:'🌋'},
   {key:'Orman Alanı',color:'#66bb6a',icon:'🌳'},
   {key:'Özel Çevre Koruma Alanı',color:'#ab47bc',icon:'🛡️'},
   {key:'Sulak Alan',color:'#26c6da',icon:'🦢'},
@@ -396,6 +399,12 @@ const DD=[
   {id:uid(),tip:'GES',ad:'Kepez GES',ilce:'Kepez',aciklama:'Kepez güneş enerjisi santrali.',koordinatlar:{lat:37.02,lng:30.67},alan_ha:180,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'TEDAŞ'},
   {id:uid(),tip:'GES',ad:'Döşemealtı GES',ilce:'Döşemealtı',aciklama:'Büyük ölçekli GES.',koordinatlar:{lat:37.02,lng:30.52},alan_ha:250,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'Özel'},
   {id:uid(),tip:'GES',ad:'Akseki GES',ilce:'Akseki',aciklama:'Akseki platosu GES.',koordinatlar:{lat:37.04,lng:31.81},alan_ha:140,durum:'Planlama',belge_no:'',eklenme:tod(),kaynak:'Özel'},
+  {id:uid(),tip:'RES',ad:'Aksu Rüzgar Enerji Santrali',ilce:'Aksu',aciklama:'Aksu ovasında kurulu rüzgar türbinleri.',koordinatlar:{lat:37.00,lng:30.90},alan_ha:320,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'TEDAŞ'},
+  {id:uid(),tip:'RES',ad:'Elmalı RES',ilce:'Elmalı',aciklama:'Elmalı yaylasında rüzgar enerji santrali.',koordinatlar:{lat:36.72,lng:29.88},alan_ha:480,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'Özel'},
+  {id:uid(),tip:'RES',ad:'Korkuteli RES',ilce:'Korkuteli',aciklama:'Toros eteklerinde rüzgar türbin sahası.',koordinatlar:{lat:37.05,lng:30.22},alan_ha:260,durum:'Planlama',belge_no:'',eklenme:tod(),kaynak:'Özel'},
+  {id:uid(),tip:'Jeotermal',ad:'Kuzucubelen Jeotermal Sahası',ilce:'Kemer',aciklama:'Jeotermal enerji ve ısıtma amaçlı kullanılan saha.',koordinatlar:{lat:36.75,lng:30.52},alan_ha:95,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'MTA'},
+  {id:uid(),tip:'Jeotermal',ad:'Kumluca Jeotermal Alanı',ilce:'Kumluca',aciklama:'Sera ısıtması için kullanılan jeotermal kaynak.',koordinatlar:{lat:36.37,lng:30.29},alan_ha:60,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'MTA'},
+  {id:uid(),tip:'Jeotermal',ad:'Finike Jeotermal Sahası',ilce:'Finike',aciklama:'Jeotermal kaynak arama ve işletme sahası.',koordinatlar:{lat:36.30,lng:30.15},alan_ha:75,durum:'Planlama',belge_no:'',eklenme:tod(),kaynak:'MTA'},
   {id:uid(),tip:'Maden Ocağı',ad:'Akseki Krom Madeni',ilce:'Akseki',aciklama:'Aktif krom madenciliği.',koordinatlar:{lat:37.07,lng:31.85},alan_ha:320,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'MTA'},
   {id:uid(),tip:'Maden Ocağı',ad:'Alanya Alüvyon Ocağı',ilce:'Alanya',aciklama:'Kum ve çakıl işletmesi.',koordinatlar:{lat:36.55,lng:32.02},alan_ha:85,durum:'Aktif',belge_no:'',eklenme:tod(),kaynak:'MTA'},
   {id:uid(),tip:'Maden Ocağı',ad:'Elmalı Boksit Sahası',ilce:'Elmalı',aciklama:'Boksit arama ve işletme.',koordinatlar:{lat:36.75,lng:29.88},alan_ha:560,durum:'Planlama',belge_no:'',eklenme:tod(),kaynak:'MTA'},
@@ -570,7 +579,7 @@ const JSONBIN_ID  = '69b78ea1c3097a1dd52bb989';   // Bin ID değeriniz
 const JSONBIN_URL = JSONBIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_ID}` : '';
 
 /* ── ADMİN ŞİFRESİ ── */
-const ADMIN_PASS = 'Smtppl5862'; // ← buraya kendi şifrenizi yazın
+const ADMIN_PASS = 'admin123'; // ← buraya kendi şifrenizi yazın
 
 /* ─── DATA ─── */
 async function load(){
